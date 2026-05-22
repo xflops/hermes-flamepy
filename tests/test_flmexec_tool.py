@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from hermes_flmexec.flmexec_tool import (
+from hermes_flamepy.flmexec_tool import (
     FlmexecToolError,
     _decode_script_output,
     _encode_script_request,

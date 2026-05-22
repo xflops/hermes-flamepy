@@ -1,7 +1,8 @@
-# hermes-flmexec
+# hermes-flamepy
 
-Hermes plugin that adds `flmexec`, a tool for running Python and shell
-snippets through Flame's built-in `flmexec` application.
+Hermes plugin for tools backed by Flame's Python SDK. The first tool is
+`flmexec`, which runs Python and shell snippets through Flame's built-in
+`flmexec` application.
 
 The tool opens or creates the Flame session with the active Hermes
 `session_id`. That keeps execution tied to the current Hermes conversation and
@@ -10,15 +11,17 @@ lets repeated calls reuse the same Flame `flmexec` session.
 ## Install
 
 ```bash
-hermes plugins install xflops/hermes-flmexec
-hermes plugins enable hermes-flmexec
-hermes tools enable flmexec
+hermes plugins install xflops/hermes-flamepy
+hermes plugins enable hermes-flamepy
+hermes tools enable hermes-flamepy
 ```
 
 The Hermes environment must have `flamepy` installed and configured for the
 target Flame endpoint.
 
 ## Tool
+
+### flmexec
 
 `flmexec` accepts:
 

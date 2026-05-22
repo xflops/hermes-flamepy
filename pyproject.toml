@@ -1,7 +1,7 @@
 [project]
-name = "hermes-flmexec"
+name = "hermes-flamepy"
 version = "0.1.0"
-description = "Hermes plugin for running Python and shell snippets through Flame flmexec."
+description = "Hermes plugin providing Flame Python SDK backed tools."
 requires-python = ">=3.10"
 dependencies = [
     "flamepy"
@@ -11,7 +11,7 @@ dependencies = [
 test = ["pytest"]
 
 [project.entry-points."hermes_agent.plugins"]
-hermes-flmexec = "hermes_flmexec"
+hermes-flamepy = "hermes_flamepy"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

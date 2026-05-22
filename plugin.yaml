@@ -1,7 +1,7 @@
 manifest_version: 1
-name: hermes-flmexec
+name: hermes-flamepy
 version: 0.1.0
-description: "Run Python and shell snippets through Flame's flmexec application, reusing the active Hermes session id as the Flame session id."
+description: "Hermes tools backed by Flame's Python SDK, starting with flmexec for Python and shell snippets."
 author: xflops
 kind: standalone
 provides_tools:
