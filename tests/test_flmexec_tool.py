@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import pytest
@@ -76,12 +77,12 @@ def test_handler_returns_plain_stdout():
     output = json.dumps({"data": list(b"ok\n")}).encode()
 
     assert (
-        handle_flmexec(
+        asyncio.run(handle_flmexec(
             {"language": "shell", "code": "echo ok"},
             session_id="sid",
             open_session_fn=_opener(output),
             session_attrs_cls=FakeAttrs,
-        )
+        ))
         == "ok\n"
     )
 
@@ -106,11 +107,11 @@ def test_resolves_session_id_from_agent_on_stack():
 
 def test_missing_session_id_raises():
     with pytest.raises(FlmexecToolError, match="session_id"):
-        handle_flmexec(
+        asyncio.run(handle_flmexec(
             {"language": "python", "code": "print(1)"},
             open_session_fn=_opener(b""),
             session_attrs_cls=FakeAttrs,
-        )
+        ))
 
 
 def test_rejects_invalid_language():

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import json
 from typing import Any, Callable, Mapping
@@ -57,9 +58,9 @@ def check_flmexec_available() -> bool:
     return True
 
 
-def handle_flmexec(args: Mapping[str, Any] | None, **kwargs: Any) -> str:
-    """Hermes registry handler for flmexec."""
-    return run_flmexec(args or {}, **kwargs)
+async def handle_flmexec(args: Mapping[str, Any] | None, **kwargs: Any) -> str:
+    """Async Hermes registry handler for flmexec."""
+    return await asyncio.to_thread(run_flmexec, args or {}, **kwargs)
 
 
 def run_flmexec(

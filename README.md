@@ -32,6 +32,9 @@ The result is the script's UTF-8 stdout. If the code is not UTF-8, the output is
 not UTF-8, the Flame session cannot be opened, or flmexec reports an error, the
 tool raises an exception instead of returning an error object.
 
+The Hermes handler is registered as async. It keeps the public tool contract
+simple while offloading Flame's blocking Python SDK calls to a worker thread.
+
 ## Python Dependencies
 
 For `language: "python"`, flmexec writes the snippet to `main.py` and runs it

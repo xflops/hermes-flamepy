@@ -18,4 +18,5 @@ def test_registers_flmexec_in_flamepy_toolset():
     tool = ctx.tools[0]
     assert tool["name"] == "flmexec"
     assert tool["toolset"] == "flamepy"
+    assert tool["is_async"] is True
     assert tool["schema"]["name"] == "flmexec"

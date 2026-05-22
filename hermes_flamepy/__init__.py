@@ -13,6 +13,7 @@ def register(ctx) -> None:
         schema=FLMEXEC_SCHEMA,
         handler=handle_flmexec,
         check_fn=check_flmexec_available,
+        is_async=True,
         description=FLMEXEC_SCHEMA["description"],
     )
 
