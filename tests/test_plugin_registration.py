@@ -9,7 +9,7 @@ class FakeContext:
         self.tools.append(kwargs)
 
 
-def test_registers_flmexec_in_hermes_flamepy_toolset():
+def test_registers_flmexec_in_flamepy_toolset():
     ctx = FakeContext()
 
     register(ctx)
@@ -17,5 +17,5 @@ def test_registers_flmexec_in_hermes_flamepy_toolset():
     assert len(ctx.tools) == 1
     tool = ctx.tools[0]
     assert tool["name"] == "flmexec"
-    assert tool["toolset"] == "hermes-flamepy"
+    assert tool["toolset"] == "flamepy"
     assert tool["schema"]["name"] == "flmexec"

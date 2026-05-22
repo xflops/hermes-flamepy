@@ -13,7 +13,7 @@ lets repeated calls reuse the same Flame `flmexec` session.
 ```bash
 hermes plugins install xflops/hermes-flamepy
 hermes plugins enable hermes-flamepy
-hermes tools enable hermes-flamepy
+hermes tools enable flamepy
 ```
 
 The Hermes environment must have `flamepy` installed and configured for the

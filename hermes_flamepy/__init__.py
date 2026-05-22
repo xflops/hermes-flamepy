@@ -9,7 +9,7 @@ def register(ctx) -> None:
     """Register Flame Python SDK backed tools with Hermes."""
     ctx.register_tool(
         name="flmexec",
-        toolset="hermes-flamepy",
+        toolset="flamepy",
         schema=FLMEXEC_SCHEMA,
         handler=handle_flmexec,
         check_fn=check_flmexec_available,
