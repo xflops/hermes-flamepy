@@ -19,6 +19,18 @@ hermes tools enable flamepy
 The Hermes environment must have `flamepy` installed and configured for the
 target Flame endpoint.
 
+### Prerequisites
+
+1. **Flame Cluster**: Set up a Flame cluster using `flmadm`. See the
+   [Installation Guide](https://xflops.io/docs/installation/) or
+   [Getting Started](https://xflops.io/docs/getting-started/) for details.
+
+2. **flamepy SDK**: Install and configure the Python SDK:
+   ```bash
+   pip install flamepy
+   ```
+   See [flamepy on PyPI](https://pypi.org/project/flamepy/) for API reference.
+
 ## Tool
 
 ### flmexec
