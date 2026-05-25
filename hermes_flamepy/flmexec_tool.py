@@ -5,9 +5,13 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import logging
 from typing import Any, Callable, Mapping
 
+logger = logging.getLogger(__name__)
+
 DEFAULT_APPLICATION = "flmexec"
+DEFAULT_SESSION_ID = "hermes-flamepy-ssn"
 TOOL_NAME = "flmexec"
 
 FLMEXEC_SCHEMA: dict[str, Any] = {
@@ -157,9 +161,11 @@ def _resolve_hermes_session_id(args: Mapping[str, Any], kwargs: Mapping[str, Any
     if value:
         return _validate_session_id(value)
 
-    raise FlmexecToolError(
-        "Hermes session_id was not available to flmexec; call this tool from an active Hermes session"
+    logger.warning(
+        "Hermes session_id was not available; using default session '%s'",
+        DEFAULT_SESSION_ID,
     )
+    return DEFAULT_SESSION_ID
 
 
 def _session_id_from_stack() -> str | None:

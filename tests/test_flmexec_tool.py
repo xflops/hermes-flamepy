@@ -4,6 +4,7 @@ import json
 import pytest
 
 from hermes_flamepy.flmexec_tool import (
+    DEFAULT_SESSION_ID,
     FlmexecToolError,
     _decode_script_output,
     _encode_script_request,
@@ -105,13 +106,19 @@ def test_resolves_session_id_from_agent_on_stack():
     assert call_with_agent_local() == "stack-session"
 
 
-def test_missing_session_id_raises():
-    with pytest.raises(FlmexecToolError, match="session_id"):
-        asyncio.run(handle_flmexec(
-            {"language": "python", "code": "print(1)"},
-            open_session_fn=_opener(b""),
-            session_attrs_cls=FakeAttrs,
-        ))
+def test_missing_session_id_falls_back_to_default():
+    output = json.dumps({"data": list(b"ok\n")}).encode()
+    open_session = _opener(output)
+
+    result = asyncio.run(handle_flmexec(
+        {"language": "python", "code": "print(1)"},
+        open_session_fn=open_session,
+        session_attrs_cls=FakeAttrs,
+    ))
+
+    assert result == "ok\n"
+    assert open_session.calls[0][0] == DEFAULT_SESSION_ID
+    assert open_session.calls[0][1].kwargs["id"] == DEFAULT_SESSION_ID
 
 
 def test_rejects_invalid_language():
