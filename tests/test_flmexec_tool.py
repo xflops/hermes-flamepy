@@ -78,12 +78,14 @@ def test_handler_returns_plain_stdout():
     output = json.dumps({"data": list(b"ok\n")}).encode()
 
     assert (
-        asyncio.run(handle_flmexec(
-            {"language": "shell", "code": "echo ok"},
-            session_id="sid",
-            open_session_fn=_opener(output),
-            session_attrs_cls=FakeAttrs,
-        ))
+        asyncio.run(
+            handle_flmexec(
+                {"language": "shell", "code": "echo ok"},
+                session_id="sid",
+                open_session_fn=_opener(output),
+                session_attrs_cls=FakeAttrs,
+            )
+        )
         == "ok\n"
     )
 
@@ -110,11 +112,13 @@ def test_missing_session_id_falls_back_to_default():
     output = json.dumps({"data": list(b"ok\n")}).encode()
     open_session = _opener(output)
 
-    result = asyncio.run(handle_flmexec(
-        {"language": "python", "code": "print(1)"},
-        open_session_fn=open_session,
-        session_attrs_cls=FakeAttrs,
-    ))
+    result = asyncio.run(
+        handle_flmexec(
+            {"language": "python", "code": "print(1)"},
+            open_session_fn=open_session,
+            session_attrs_cls=FakeAttrs,
+        )
+    )
 
     assert result == "ok\n"
     assert open_session.calls[0][0] == DEFAULT_SESSION_ID
@@ -139,3 +143,20 @@ def test_rejects_code_that_cannot_encode_as_utf8():
             open_session_fn=_opener(b""),
             session_attrs_cls=FakeAttrs,
         )
+
+
+def test_resolves_session_id_from_environment(monkeypatch):
+    monkeypatch.setenv("HERMES_SESSION_ID", "env-session-123")
+    assert _resolve_hermes_session_id({}, {}) == "env-session-123"
+
+
+def test_env_session_id_priority(monkeypatch):
+    monkeypatch.setenv("HERMES_SESSION_ID", "first")
+    monkeypatch.setenv("session_id", "second")
+    monkeypatch.setenv("hermes_session_id", "third")
+    assert _resolve_hermes_session_id({}, {}) == "first"
+
+
+def test_env_fallback_to_session_id(monkeypatch):
+    monkeypatch.setenv("session_id", "fallback-session")
+    assert _resolve_hermes_session_id({}, {}) == "fallback-session"

@@ -6,6 +6,7 @@ import asyncio
 import inspect
 import json
 import logging
+import os
 from typing import Any, Callable, Mapping
 
 logger = logging.getLogger(__name__)
@@ -145,7 +146,9 @@ def _normalize_language(value: Any) -> str:
     return language
 
 
-def _resolve_hermes_session_id(args: Mapping[str, Any], kwargs: Mapping[str, Any]) -> str:
+def _resolve_hermes_session_id(
+    args: Mapping[str, Any], kwargs: Mapping[str, Any]
+) -> str:
     for key in ("session_id", "hermes_session_id"):
         value = kwargs.get(key) or args.get(f"_{key}")
         if value:
@@ -159,6 +162,12 @@ def _resolve_hermes_session_id(args: Mapping[str, Any], kwargs: Mapping[str, Any
     value = _session_id_from_stack()
     if value:
         return _validate_session_id(value)
+
+    # Check environment as a last-resort backup before raising
+    for env_key in ("HERMES_SESSION_ID", "session_id", "hermes_session_id"):
+        value = os.environ.get(env_key)
+        if value:
+            return _validate_session_id(str(value))
 
     logger.warning(
         "Hermes session_id was not available; using default session '%s'",
@@ -207,7 +216,9 @@ def _encode_script_request(language: str, code: str) -> bytes:
         "code": code,
         "input": None,
     }
-    return json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return json.dumps(payload, separators=(",", ":"), ensure_ascii=False).encode(
+        "utf-8"
+    )
 
 
 def _decode_script_output(raw_output: Any) -> str:
@@ -221,7 +232,9 @@ def _decode_script_output(raw_output: Any) -> str:
     elif isinstance(raw_output, bytearray):
         raw_bytes = bytes(raw_output)
     else:
-        raise FlmexecToolError(f"flmexec returned unsupported output type {type(raw_output).__name__}")
+        raise FlmexecToolError(
+            f"flmexec returned unsupported output type {type(raw_output).__name__}"
+        )
 
     try:
         raw_text = raw_bytes.decode("utf-8")
@@ -243,7 +256,9 @@ def _decode_script_output(raw_output: Any) -> str:
             except UnicodeDecodeError as exc:
                 raise FlmexecToolError("flmexec output must be valid UTF-8") from exc
             except ValueError as exc:
-                raise FlmexecToolError("flmexec output data contains non-byte values") from exc
+                raise FlmexecToolError(
+                    "flmexec output data contains non-byte values"
+                ) from exc
         if isinstance(data, str):
             _validate_utf8_text("flmexec output", data)
             return data
