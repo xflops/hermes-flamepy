@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Hermes plugin providing Flame Python SDK backed tools."
 requires-python = ">=3.10"
 dependencies = [
-    "flamepy"
+    "flamepy>=0.6.0"
 ]
 
 [project.optional-dependencies]

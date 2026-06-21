@@ -17,12 +17,11 @@ TOOL_NAME = "flmexec"
 FLMEXEC_SCHEMA: dict[str, Any] = {
     "name": TOOL_NAME,
     "description": (
-        "Run Python or shell code in Flame's flmexec application. The tool uses "
-        "the active Hermes session id as the Flame session id, so repeated calls "
-        "from the same Hermes session reuse the same Flame session. For Python "
-        "code with third-party dependencies, include uv inline script metadata "
-        "at the top of the snippet. Returns only UTF-8 stdout and raises on "
-        "errors."
+        "Execute Python or shell code in a remote sandbox without affecting the "
+        "local system. Ideal for running untrusted code, testing scripts, or "
+        "offloading computations. Repeated calls within the same Hermes session "
+        "share sandbox state. For Python with dependencies, add PEP 723 inline "
+        "metadata. Returns UTF-8 stdout."
     ),
     "parameters": {
         "type": "object",
