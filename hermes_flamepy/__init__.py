@@ -2,19 +2,29 @@
 
 from __future__ import annotations
 
-from .flmexec_tool import FLMEXEC_SCHEMA, check_flmexec_available, handle_flmexec
+from .sandbox import SANDBOX_SCHEMA, check_sandbox_available, handle_sandbox
+from .session import SESSION_SCHEMA, check_session_available, handle_session
 
 
 def register(ctx) -> None:
     """Register Flame Python SDK backed tools with Hermes."""
     ctx.register_tool(
-        name="flmexec",
+        name="sandbox",
         toolset="flamepy",
-        schema=FLMEXEC_SCHEMA,
-        handler=handle_flmexec,
-        check_fn=check_flmexec_available,
+        schema=SANDBOX_SCHEMA,
+        handler=handle_sandbox,
+        check_fn=check_sandbox_available,
         is_async=True,
-        description=FLMEXEC_SCHEMA["description"],
+        description=SANDBOX_SCHEMA["description"],
+    )
+    ctx.register_tool(
+        name="session",
+        toolset="flamepy",
+        schema=SESSION_SCHEMA,
+        handler=handle_session,
+        check_fn=check_session_available,
+        is_async=True,
+        description=SESSION_SCHEMA["description"],
     )
 
 

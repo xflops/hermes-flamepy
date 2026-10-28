@@ -1,12 +1,13 @@
 # hermes-flamepy
 
-Hermes plugin for tools backed by Flame's Python SDK. The first tool is
-`flmexec`, which runs Python and shell snippets through Flame's built-in
-`flmexec` application.
+Hermes plugin that runs code in [Flame](https://xflops.io) instead of on the local
+machine. It adds two tools to the `flamepy` toolset, both served by Flame's
+built-in `flmbox` application:
 
-The tool opens or creates the Flame session with the active Hermes
-`session_id`. That keeps execution tied to the current Hermes conversation and
-lets repeated calls reuse the same Flame `flmexec` session.
+| Tool | Runs | Use it for |
+|---|---|---|
+| `sandbox` | one snippet at a time in a persistent sandbox (`flamepy.agent.Sandbox`) | multi-step work whose steps share files under `/tmp` |
+| `session` | a batch of snippets in parallel, one executor each (`flamepy.agent.Session`) | independent snippets: sweeps, many small computations |
 
 ## Install
 
@@ -16,52 +17,91 @@ hermes plugins enable hermes-flamepy
 hermes tools enable flamepy
 ```
 
-The Hermes environment must have `flamepy` installed and configured for the
-target Flame endpoint.
+Prerequisites:
 
-### Prerequisites
+- A Flame cluster with the `flmbox` application registered and `runsc` on the
+  executors. See the [Installation Guide](https://xflops.io/docs/installation/).
+  The sandbox must be able to reach the network, which the built-in `flmbox`
+  application allows (`--network=host`, flame#613).
+- `flamepy` 0.7.0 or later, installed and configured for the cluster in the
+  Hermes environment.
 
-1. **Flame Cluster**: Set up a Flame cluster using `flmadm`. See the
-   [Installation Guide](https://xflops.io/docs/installation/) or
-   [Getting Started](https://xflops.io/docs/getting-started/) for details.
+## Tools
 
-2. **flamepy SDK**: Install and configure the Python SDK:
-   ```bash
-   pip install flamepy
-   ```
-   See [flamepy on PyPI](https://pypi.org/project/flamepy/) for API reference.
+Both tools take the code first, then `language` (`python` or `shell`, default
+`python`), then an optional `timeout` in seconds.
 
-## Tool
+### sandbox
 
-### flmexec
+`sandbox` takes `code`, `language` and `timeout`. It returns the script's stdout.
+A nonzero exit raises an error that includes the exit code, stderr and stdout.
+Calls run one at a time in the same sandbox, so files under `/tmp` persist
+between calls.
 
-`flmexec` accepts:
+### session
 
-- `language`: `python` or `shell`
-- `code`: UTF-8 source code to run
+`session` takes `codes` (a list of 1-64 snippets), `language` (for all of them)
+and `timeout` (for each). Each snippet is submitted with `Session.submit_code`, so
+they run concurrently on separate executors and do not share `/tmp`; use
+`sandbox` when steps need each other's files.
 
-The result is the script's UTF-8 stdout. If the code is not UTF-8, the output is
-not UTF-8, the Flame session cannot be opened, or flmexec reports an error, the
-tool raises an exception instead of returning an error object.
-
-The Hermes handler is registered as async. It keeps the public tool contract
-simple while offloading Flame's blocking Python SDK calls to a worker thread.
-
-## Python Dependencies
-
-For `language: "python"`, flmexec writes the snippet to `main.py` and runs it
-with `uv run`. Do not rely on third-party packages already being installed on
-the worker image. Put Python dependencies in uv inline script metadata at the
-top of the submitted code.
-
-Example tool payload:
+The result is a JSON array with one object per snippet, in the order of `codes`,
+always `{"exit_code", "stdout", "stderr"}`:
 
 ```json
-{
-  "language": "python",
-  "code": "# /// script\n# requires-python = \">=3.11\"\n# dependencies = [\n#   \"httpx>=0.27\",\n#   \"beautifulsoup4>=4.12\",\n# ]\n# ///\n\nimport httpx\nfrom bs4 import BeautifulSoup\n\nhtml = httpx.get(\"https://example.com\", timeout=10).text\nsoup = BeautifulSoup(html, \"html.parser\")\nprint(soup.title.string)\n"
-}
+[
+  {"exit_code": 0, "stdout": "4\n", "stderr": ""},
+  {"exit_code": 1, "stdout": "", "stderr": "Traceback ..."}
+]
 ```
 
-The important part is the `# /// script` block. `uv run` reads it, resolves the
-listed packages, and executes the script with those packages available.
+An `exit_code` other than 0 means that snippet failed. If a snippet could not run
+at all, `exit_code` is `-1` and `stderr` holds the error. A failing snippet does
+not fail the others.
+
+## Sandbox and session ids
+
+Neither tool takes an id. Each machine has one sandbox and one session, created
+on first use as Flame `hermes-sandbox-<mac>` (from `python:3.12-slim`) and
+`hermes-session-<mac>`. Calls share them, across Hermes sessions.
+
+`<mac>` is the MAC address (12 hex digits) of the machine's first physical
+network interface, so the ids are the same in every Hermes process and across
+restarts. Virtual interfaces (loopback, bridges, VPNs, containers) are skipped:
+
+- Linux: the first interface, by name, that has a `/sys/class/net/<name>/device`
+  link.
+- macOS: the first hardware port in `networksetup -listallhardwareports`.
+- Other systems: `uuid.getnode()`, if it found a real MAC.
+
+If there is no physical interface, for example in a container with only virtual
+ones, the tools fail with an error instead of inventing an id. The first physical
+interface can change when an adapter or dock is plugged in or removed, which
+selects a different sandbox and session.
+
+A restarted Hermes reconnects while the sandbox or session is open. A suspended
+sandbox is resumed (and starts fresh). A closed one keeps its id on the cluster,
+so the plugin opens `...-1`, `-2`, ... and the old files are lost. The plugin
+never closes either, so each keeps its executors until something else does; list
+and remove them with `flmctl list -s`, `flmctl close -s <id>` and
+`flmctl delete -s <id>`.
+
+The session is opened with `flamepy.agent.open_session(ssn_id=...)`, which opens
+the session or creates it when missing.
+
+## Python packages
+
+The root filesystem is read-only and only `/tmp` is writable, in the sandbox and
+in session executors. The plugin sets `PIP_TARGET` and `PYTHONPATH` to
+`/tmp/site-packages` on every call, so a plain install works and the package can
+be imported afterwards:
+
+```json
+{"language": "shell", "code": "pip install httpx"}
+```
+
+In `sandbox`, installed packages stay available to later calls until the sandbox
+is recreated. In `session`, each snippet may run on a different executor, so
+install and import within the same snippet (a `shell` snippet that runs
+`pip install` and then the program, or `python` code that installs first). The
+image has no `uv`, so PEP 723 inline metadata is not supported.

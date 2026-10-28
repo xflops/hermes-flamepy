@@ -1,8 +1,9 @@
 manifest_version: 1
 name: hermes-flamepy
-version: 0.1.0
-description: "Hermes tools backed by Flame's Python SDK, starting with flmexec for Python and shell snippets."
+version: 0.2.0
+description: "Hermes tools backed by Flame's Python SDK, sandbox for Python and shell snippets, session for running them in parallel."
 author: xflops
 kind: standalone
 provides_tools:
-  - flmexec
+  - sandbox
+  - session
