@@ -9,14 +9,13 @@ class FakeContext:
         self.tools.append(kwargs)
 
 
-def test_registers_flmexec_in_flamepy_toolset():
+def test_registers_tools_in_flamepy_toolset():
     ctx = FakeContext()
 
     register(ctx)
 
-    assert len(ctx.tools) == 1
-    tool = ctx.tools[0]
-    assert tool["name"] == "flmexec"
-    assert tool["toolset"] == "flamepy"
-    assert tool["is_async"] is True
-    assert tool["schema"]["name"] == "flmexec"
+    assert [t["name"] for t in ctx.tools] == ["sandbox", "session"]
+    for tool in ctx.tools:
+        assert tool["toolset"] == "flamepy"
+        assert tool["is_async"] is True
+        assert tool["schema"]["name"] == tool["name"]

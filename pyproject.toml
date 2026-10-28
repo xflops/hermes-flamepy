@@ -1,10 +1,10 @@
 [project]
 name = "hermes-flamepy"
-version = "0.1.0"
+version = "0.2.0"
 description = "Hermes plugin providing Flame Python SDK backed tools."
 requires-python = ">=3.10"
 dependencies = [
-    "flamepy>=0.6.0"
+    "flamepy>=0.7.0"
 ]
 
 [project.optional-dependencies]
@@ -24,7 +24,6 @@ disable = [
     "import-outside-toplevel",
     "broad-exception-caught",
     "unused-import",
-    "too-many-branches",
 ]
 
 [tool.pylint.format]
