@@ -28,9 +28,17 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out Hermes terminal API reference
+        uses: actions/checkout@v4
+        with:
+          repository: NousResearch/hermes-agent
+          ref: 31ce88f86e6cf4a66ef6aa315e4657a31bcf9915
+          path: .hermes-test-reference
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -42,4 +50,6 @@ jobs:
         run: uv sync --extra test
 
       - name: Run tests
+        env:
+          HERMES_AGENT_PATH: ${{ github.workspace }}/.hermes-test-reference
         run: uv run pytest tests/ -v

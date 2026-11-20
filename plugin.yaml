@@ -1,9 +1,14 @@
 manifest_version: 1
 name: hermes-flamepy
-version: 0.2.0
-description: "Hermes tools backed by Flame's Python SDK, sandbox for Python and shell snippets, session for running them in parallel."
+version: 0.3.2
+description: "Run Hermes terminal and file tools in persistent Flame sandboxes."
 author: xflops
-kind: standalone
-provides_tools:
-  - sandbox
-  - session
+kind: backend
+python_dependencies:
+  - flamepy>=0.7.0
+  - filelock>=3.16,<4
+config_schema:
+  image:
+    type: string
+    default: python:3.12-slim
+    description: "Flame sandbox image; must include bash and python3."

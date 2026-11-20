@@ -1,14 +1,16 @@
 [project]
 name = "hermes-flamepy"
-version = "0.2.0"
-description = "Hermes plugin providing Flame Python SDK backed tools."
-requires-python = ">=3.10"
+version = "0.3.2"
+description = "Hermes terminal backend backed by Flame's persistent sandboxes."
+readme = "README.md"
+requires-python = ">=3.11"
 dependencies = [
-    "flamepy>=0.7.0"
+    "flamepy>=0.7.0",
+    "filelock>=3.16,<4",
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "pylint"]
+test = ["pytest", "pylint", "ruamel.yaml", "psutil", "httpx", "python-dotenv"]
 
 [project.entry-points."hermes_agent.plugins"]
 hermes-flamepy = "hermes_flamepy"
